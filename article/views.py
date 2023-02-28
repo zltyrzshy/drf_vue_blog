@@ -1,28 +1,43 @@
 from django.http import JsonResponse, Http404
 from django.shortcuts import render
-from rest_framework import status, generics
+from rest_framework import status, generics, filters
 from rest_framework.decorators import api_view
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from article.models import Article
+from article.models import Article, Category
 from article.permissons import IsAdminUserOrReadOnly
 # from article.serializers import ArticleListSerializer, ArticleDetailSerializer
 
 # Create your views here.
 
 from rest_framework import viewsets
-from article.serializers import ArticleSerializer
+from article.serializers import ArticleSerializer, CategorySerializer, CategoryDetailSerializer
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
     queryset = Article.objects.all()
     serializer_class = ArticleSerializer
     permission_classes = [IsAdminUserOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['title']
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+
+class CategoryViewSet(viewsets.ModelViewSet):
+    """分类视图集"""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminUserOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return CategorySerializer
+        else:
+            return CategoryDetailSerializer
 
 # class ArticleList(generics.ListCreateAPIView):
 #     permission_classes = [IsAdminUserOrReadOnly]
