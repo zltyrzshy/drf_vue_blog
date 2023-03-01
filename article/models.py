@@ -3,6 +3,11 @@
 from django.db import models
 from django.utils import timezone
 from django.contrib.auth.models import User
+from markdown import Markdown
+
+
+class Avatar(models.Model):
+    content = models.ImageField(upload_to='avatar/%Y%m%d')
 
 
 class Category(models.Model):
@@ -15,6 +20,16 @@ class Category(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Tag(models.Model):
+    text = models.CharField(max_length=30)
+
+    class Meta:
+        ordering = ['-id']
+
+    def __str__(self):
+        return self.text
 
 
 # 博客文章 model
@@ -42,6 +57,32 @@ class Article(models.Model):
         on_delete=models.SET_NULL,
         related_name='articles'
     )
+
+    tags = models.ManyToManyField(
+        Tag,
+        blank=True,
+        related_name='articles'
+    )
+
+    avatar = models.ForeignKey(
+        Avatar,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='articles'
+    )
+
+    def get_md(self):
+        md = Markdown(
+            extensions=[
+                'markdown.extensions.extra',
+                'markdown.extensions.codehilite',
+                'markdown.extensions.toc',
+            ]
+        )
+        md_body = md.convert(self.body)
+        # toc 是渲染后的目录
+        return md_body, md.toc
 
     class Meta:
         ordering = ['-created']

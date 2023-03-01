@@ -6,14 +6,15 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from article.models import Article, Category
+from article.models import Article, Category, Tag, Avatar
 from article.permissons import IsAdminUserOrReadOnly
 # from article.serializers import ArticleListSerializer, ArticleDetailSerializer
 
 # Create your views here.
 
 from rest_framework import viewsets
-from article.serializers import ArticleSerializer, CategorySerializer, CategoryDetailSerializer
+from article.serializers import ArticleSerializer, CategorySerializer, CategoryDetailSerializer, TagSerializer, \
+    ArticleDetailSerializer, AvatarSerializer
 
 
 class ArticleViewSet(viewsets.ModelViewSet):
@@ -25,6 +26,24 @@ class ArticleViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return ArticleSerializer
+        else:
+            return ArticleDetailSerializer
+
+
+class AvatarViewSet(viewsets.ModelViewSet):
+    queryset = Avatar.objects.all()
+    serializer_class = AvatarSerializer
+    permission_classes = [IsAdminUserOrReadOnly]
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    queryset = Tag.objects.all()
+    permission_classes = [IsAdminUserOrReadOnly]
+    serializer_class = TagSerializer
 
 
 class CategoryViewSet(viewsets.ModelViewSet):
